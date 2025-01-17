@@ -8,7 +8,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 
 // Import the two parts of a GraphQL schema
-import { typeDefs, resolvers } from '../src/schemas/index.js';
+import {typeDefs,resolvers} from './schemas/index.js'
 import { authenticateToken} from './services/auth.js';
 
 const server = new ApolloServer({
@@ -29,10 +29,9 @@ const startApolloServer = async () => {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
-  app.use('/graphql',authenticateToken, expressMiddleware(server,{
-    context: async ({ req }) => ({
-      user: (req as any).user, 
-    }),
+  app.use('/graphql', expressMiddleware(server,{
+    context: authenticateToken
+   
   }));
 
   if (process.env.NODE_ENV === 'production') {

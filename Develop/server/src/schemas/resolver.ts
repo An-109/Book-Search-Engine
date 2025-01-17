@@ -1,55 +1,106 @@
-import User,{UserDocument} from '../models/User.js'
-import Book,{BookDocument} from '../models/Book.js'
+import User from "../models/User.js";
+// import Book, { BookDocument } from "../models/Book.js";
+import { GraphQLError } from 'graphql';
 
-import { signToken } from '../services/auth.js';
-interface AuthPayload{
-    token: string;
-    user:UserDocument;
-}
-const resolver={
-    Query:{
-        book: async(): Promise<BookDocument[]>=>{
-            return Book.find({});
-        },
-        getSingleUser: async (_: any, { id, username }: { id?: string; username?: string }, { user }: { user: UserDocument }) => {
-            const foundUser = await User.findOne({
-              $or: [
-                { _id: user ? user._id : id },
-                { username: username },
-              ],
-            });
-            return foundUser;
-    },
-    User: {
-        isCorrectPassword: async (user: UserDocument, { password }: { password: string }): Promise<boolean> => {
-          return user.password === password;  
-        },
-        bookCount: (user: UserDocument): number => {
-          return user.savedBooks.length; 
-        },
+import { signToken } from "../services/auth.js";
 
-      },
-    Mutation:{
-        createUser: async (_parent:any,{username,password,email}:{username:string;password:string;email:string;}):Promise<AuthPayload>=>{
-            const newUser = new User({username,password,email});
-            await newUser.save();
-            const token = signToken(newUser.username, newUser.email, newUser._id);
-            return{
-                token,
-                user:newUser,
-            };
+const resolver = {
+  Query: {
+    getSingleUser: async (_parent: any, _args: any, context: any) => {
+      if (context?.user) {
+        const foundUser = await User.findOne({ _id: context.user._id });
 
-        },
-        saveBook: async (_parent:any,{bookId, description,authors,image,link,title}:{bookId:string; description:string;authors:string; image:string;link:string;title:string;})=>{
-            return await Book.create({bookId, description,authors,image,link,title})
-        },
-        deleteBook: async (_parent:any,{bookId, title}:{bookId:string; title:string;})=>{
-            return await Book.deleteOne({bookId,title})
-        }
+        if (!foundUser) {
+          throw new  GraphQLError("User does not exist!")
         
-    }
-}
+        }
 
+        return foundUser;
+      } else {
+        throw new  GraphQLError("auth error")
+      }
+    },
+  },
+  // searchGoogleBooks: async (_parent:any, { query }:any, _context:any) => {
+  //   const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`;
+    
+  //   try {
+  //     const response = await fetch(apiUrl);
+  //     const data = await response.json();
+  
+  //     return data.items.map((book:any) => ({
+  //       id: book.id,
+  //       title: book.volumeInfo.title || 'No title available',
+  //       authors: book.volumeInfo.authors || ['No author available'],
+  //       description: book.volumeInfo.description || 'No description available',
+  //       image: book.volumeInfo.imageLinks?.thumbnail || '',
+  //     }));
+  //   } catch (error) {
+  //     console.error('Error fetching books:', error);
+  //     throw new Error('Failed to fetch books');
+  //   }
+  // },
+  Mutation: {
+    createUser: async (
+      _parent: any,
+      args: { username: string; email: string; password: string },
+      _context: any
+    ) => {
+      const user = await User.create(args);
+
+      if (!user) {
+        return null;
+      }
+      const token = signToken(user.username, user.email, user._id);
+      return { token, user };
+    },
+
+    login: async (
+      _parent: any,
+      args: { email: string; password: string },
+      _context: any
+    ) => {
+      const user = await User.findOne({ email: args.email });
+      if (!user) {
+        throw new  GraphQLError("User does not exist!")
+      }
+
+      const correctPw = await user.isCorrectPassword(args.password);
+
+      if (!correctPw) {
+        return null;
+      }
+      const token = signToken(user.username, user.email, user._id);
+      return { token, user };
+    },
+
+    saveBook : async (_parent:any,args:any,context:any) => {
+      console.log(args)
+      try {
+        
+        const updatedUser = await User.findOneAndUpdate(
+          {_id: context.user._id},
+          { $addToSet: { savedBooks: [args["book"]] } },
+          { new: true, runValidators: true }
+        );
+        return updatedUser;
+      } catch (err) {
+        console.log(err);
+        return null;
+      }
+    },
+    deleteBook : async (_parent:any,args:any,context:any) => {
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: context.user._id },
+        { $pull: { savedBooks: { bookId: args.params.bookId } } },
+        { new: true }
+      );
+      if (!updatedUser) {
+        return null;
+      }
+      return updatedUser
+    }
+  },
 
 };
 

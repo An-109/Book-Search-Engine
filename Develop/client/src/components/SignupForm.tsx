@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 
-import { createUser } from '../utils/API';
+// import { createUser } from '../utils/API';
 import Auth from '../utils/auth';
-import type { User } from '../models/User';
-
+import { CREATE_USER } from '../utils/mutations';
+import type {User} from '../utils/types'
+import { useMutation } from '@apollo/client';
 // biome-ignore lint/correctness/noEmptyPattern: <explanation>
 const SignupForm = ({}: { handleModalClose: () => void }) => {
   // set initial form state
@@ -14,7 +15,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
-
+  const [createUser] = useMutation(CREATE_USER)
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setUserFormData({ ...userFormData, [name]: value });
@@ -31,26 +32,30 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
     }
 
     try {
-      const response = await createUser(userFormData);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const { token } = await response.json();
-      Auth.login(token);
-    } catch (err) {
-      console.error(err);
-      setShowAlert(true);
-    }
-
-    setUserFormData({
-      username: '',
-      email: '',
-      password: '',
-      savedBooks: [],
-    });
-  };
+      const response = await createUser({
+        variables: {
+          username: userFormData.username,
+          email: userFormData.email,
+          password: userFormData.password
+        }
+      });
+        
+            const token = response.data.createUser.token;
+          
+            Auth.login(token);
+          } catch (err) {
+            console.error(err);
+            setShowAlert(true);
+          }
+      
+          setUserFormData({
+            username: '',
+            email: '',
+            password: '',
+            savedBooks: [],
+          });
+        };
+      
 
   return (
     <>
