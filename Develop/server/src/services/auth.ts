@@ -4,11 +4,11 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
-interface JwtPayload {
-  _id: unknown;
-  username: string;
-  email: string,
-}
+// interface JwtPayload {
+//   _id: unknown;
+//   username: string;
+//   email: string,
+// }
 
 // export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
 //   const authHeader = req.headers.authorization;
