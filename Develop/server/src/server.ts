@@ -35,11 +35,12 @@ const startApolloServer = async () => {
   }));
 
   if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/dist')));
+    app.use(express.static(path.join(__dirname, '../../Client/dist')));
 
     app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+      res.sendFile(path.join(__dirname, '../../Client/dist/index.html'));
     });
+    
   }
 
   app.listen(PORT, () => {
