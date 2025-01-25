@@ -1,7 +1,7 @@
 import express from 'express';
 import db from './config/connection.js';
 import path from 'node:path';
-
+import { fileURLToPath } from 'node:url';
 // import { UserDocument } from './models/User.js';
 // Import the ApolloServer class
 import { ApolloServer } from '@apollo/server';
@@ -33,7 +33,8 @@ const startApolloServer = async () => {
     context: authenticateToken
    
   }));
-
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../../Client/dist')));
 
