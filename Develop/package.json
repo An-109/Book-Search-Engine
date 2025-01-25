@@ -13,9 +13,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  
   "dependencies": {
     "@apollo/client": "^3.12.5",
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.2"
   }
 }
