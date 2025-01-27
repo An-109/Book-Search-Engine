@@ -25,7 +25,7 @@ const startApolloServer = async () => {
 
   const PORT = process.env.PORT || 3001;
   const app = express();
-
+  console.log(app)
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
@@ -37,14 +37,15 @@ const startApolloServer = async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/dist')));  // Correct path
+    app.use(express.static(path.join(__dirname, '../../client/dist')));  // Correct path
   
     app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));  // Correct path
+      res.sendFile(path.join(__dirname, '../../client/dist/index.html'));  // Correct path
     });
   
     
   }
+console.log("static"+path.join(__dirname, '../client/dist/index.html'));
 
   app.listen(PORT, () => {
     console.log(`API server running on port ${PORT}!`);
