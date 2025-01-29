@@ -67,7 +67,7 @@ The **Book Search Engine** is a full-stack web application that allows users to 
    ```
 2. Navigate to the project directory:
    ```bash
-   cd develop
+   cd your-directory
    ```
 3. Install dependencies:
    ```bash
@@ -81,7 +81,7 @@ The **Book Search Engine** is a full-stack web application that allows users to 
 ### Usage
 1. Start the development server:
    ```bash
-   npm 
+   npm run develop
    ```
 2. Open the app in your browser at `http://localhost:3000`.
 
